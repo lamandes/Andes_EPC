@@ -13,6 +13,12 @@ namespace Andes_EPC.Controllers
             return View();
         }
 
+        public ActionResult EpcResults()
+        {
+            ViewBag.Message = "Runnymede energy rating page.";
+            return View();
+        }
+
         public ActionResult About()
         {
             ViewBag.Message = "Your application description page.";
