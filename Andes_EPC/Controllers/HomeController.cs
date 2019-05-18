@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -16,6 +17,7 @@ namespace Andes_EPC.Controllers
         public ActionResult EpcResults()
         {
             ViewBag.Message = "Runnymede energy rating page.";
+            //var json = "epc_testJSON2.json";
             return View();
         }
 

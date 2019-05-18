@@ -6,3 +6,160 @@
 
 <h2>EpcResults</h2>
 
+<table class="table">
+    <thead>
+        <tr>
+            <th>Address</th>
+            <th>Post Code</th>
+            <th>Current Energy Rating</th>
+            <th>Potential Energy Rating</th>
+            <th>Current Energy Efficiency</th>
+            <th>Potential Energy Efficiency</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+
+@section scripts
+    {
+<script>
+    
+    // Create the XHR object.
+    function createCORSRequest(method, url, base64Key)
+    {
+        var xhr = new XMLHttpRequest();
+        xhr.withCredentials = true;
+
+        if ("withCredentials" in xhr) {
+            // XHR for Chrome/Firefox/Opera/Safari.
+            xhr.open(method, url, true);
+            xhr.setRequestHeader('Authorization', 'Basic' + base64Key);
+            
+
+        } else if (typeof XDomainRequest != "undefined") {
+            // XDomainRequest for IE.
+            xhr = new XDomainRequest();
+            xhr.open(method, url);
+        } else {
+            // CORS not supported.
+            xhr = null;
+        }
+        return xhr;
+    }
+
+    var url = 'https://epc.opendatacommunities.org/api/v1/domestic/search?local-authority=E07000212';
+    function makeCorsRequest()
+    {
+        //var xhr = createCORSRequest('GET', url, btoa('lightsaber2958+epc_catapult@gmail.com:4a0b0632882b35f7edd9ca1de96fd8f1cec69bae'));
+        var xhr = createCORSRequest('GET', url, 'bGlnaHRzYWJlcjI5NTgrZXBjX2NhdGFwdWx0QGdtYWlsLmNvbTo0YTBiMDYzMjg4MmIzNWY3ZWRkOWNhMWRlOTZmZDhmMWNlYzY5YmFl')
+        
+        if (!xhr)
+        {
+            alert('CORS not supported');
+            return;
+        }
+
+        // Response handlers.
+        xhr.onload = function ()
+        {
+            // Process our return data
+            if (xhr.status >= 200 && xhr.status < 300) {
+                // Runs when the request is successful
+                var data = JSON.parse(xhr.responseText);
+                var tr;
+                for (var rowData in data.rows)
+                {
+                    tr = $('<tr />');
+                    tr.append("<td>" + rowData["address1"] + "</td>");
+                    tr.append("<td>" + rowData["postcode"] + "</td>");
+                    tr.append("<td>" + rowData["current-energy-rating"] + "</td>");
+                    tr.append("<td>" + rowData["potential-energy-rating"] + "</td>");
+                    tr.append("<td>" + rowData["current-energy-efficiency"] + "</td>");
+                    tr.append("<td>" + rowData["potential-energy-efficiency"] + "</td>");
+                    $('table').append(tr);
+                }
+            }
+            else
+            {
+                // Runs when it's not
+                console.log(xhr.responseText);
+            }
+        };
+
+        xhr.onerror = function ()
+        {
+            alert('Woops, there was an error making the request.');
+        };
+
+        xhr.send();
+    }
+    $(document).ready(function () {
+        makeCorsRequest();
+    });
+
+/*
+        // jQuery CORS example
+        $.ajax({
+            xhrFields: {
+                withCredentials: true
+            },
+                type: "GET",
+            url: "https://epc.opendatacommunities.org/api/v1/domestic/search?local-authority=E07000212"
+            }).done(function (data) {
+            console.log(data);
+            });
+
+            // XMLHttpRequest
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", "http://www.example.org/ajax.php", true);
+            xhr.withCredentials = true;
+            xhr.onload = function () {
+                console.log(xhr.responseText);
+            };
+            xhr.send();
+
+            // Fetch with credentials
+            fetch("http://www.example.org/ajax.php", {
+                credentials: "include"
+            }).then(function (response) {
+                return response.json();
+            }).then(function (json) {
+                console.log(json);
+        });
+*/
+        //var auth = btoa('lightsaber2958+epc_catapult@gmail.com:4a0b0632882b35f7edd9ca1de96fd8f1cec69bae');
+        //$(document).ready(function () {
+        //    $.ajax({
+        //        type: 'get',
+        //        contentType: "application/json",
+        //        'url': "https://epc.opendatacommunities.org/api/v1/domestic/search?local-authority=E07000212",
+        //        headers: {
+        //            Accept: "application/json",
+        //            Authorization: "Basic" + auth,
+        //        },
+        //        //Access-Control-Allow-Credentials: true,
+        //        crossOrigin: true,
+        //        success: function (json) {
+        //            var tr;
+        //            for (var rowData in json.rows) {
+        //                tr = $('<tr />');
+        //                tr.append("<td>" + rowData["address1"] + "</td>");
+        //                tr.append("<td>" + rowData["postcode"] + "</td>");
+        //                tr.append("<td>" + rowData["current-energy-rating"] + "</td>");
+        //                tr.append("<td>" + rowData["potential-energy-rating"] + "</td>");
+        //                tr.append("<td>" + rowData["current-energy-efficiency"] + "</td>");
+        //                tr.append("<td>" + rowData["potential-energy-efficiency"] + "</td>");
+        //                $('table').append(tr);
+        //            }
+        //        },
+        //        error: function (data, textStatus, errorThrown) {
+        //            console.log("error" + ' ' + JSON.stringify(data) + textStatus + errorThrown);
+        //        }
+                
+        //    });
+            
+        //});
+    </script>
+}
+
