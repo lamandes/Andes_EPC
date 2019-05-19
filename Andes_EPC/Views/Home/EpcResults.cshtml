@@ -24,7 +24,7 @@
 @section scripts
     {
 <script>
-    
+
     // Create the XHR object.
     function createCORSRequest(method, url, base64Key)
     {
@@ -35,7 +35,7 @@
             // XHR for Chrome/Firefox/Opera/Safari.
             xhr.open(method, url, true);
             xhr.setRequestHeader('Authorization', 'Basic' + base64Key);
-            
+
 
         } else if (typeof XDomainRequest != "undefined") {
             // XDomainRequest for IE.
@@ -53,7 +53,7 @@
     {
         //var xhr = createCORSRequest('GET', url, btoa('lightsaber2958+epc_catapult@gmail.com:4a0b0632882b35f7edd9ca1de96fd8f1cec69bae'));
         var xhr = createCORSRequest('GET', url, 'bGlnaHRzYWJlcjI5NTgrZXBjX2NhdGFwdWx0QGdtYWlsLmNvbTo0YTBiMDYzMjg4MmIzNWY3ZWRkOWNhMWRlOTZmZDhmMWNlYzY5YmFl')
-        
+
         if (!xhr)
         {
             alert('CORS not supported');
@@ -138,8 +138,7 @@
         //            Accept: "application/json",
         //            Authorization: "Basic" + auth,
         //        },
-        //        //Access-Control-Allow-Credentials: true,
-        //        crossOrigin: true,
+               
         //        success: function (json) {
         //            var tr;
         //            for (var rowData in json.rows) {
@@ -156,10 +155,10 @@
         //        error: function (data, textStatus, errorThrown) {
         //            console.log("error" + ' ' + JSON.stringify(data) + textStatus + errorThrown);
         //        }
-                
+
         //    });
-            
+
         //});
-    </script>
+</script>
 }
 
