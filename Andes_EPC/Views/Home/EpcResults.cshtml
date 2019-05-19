@@ -1,10 +1,31 @@
-﻿
-@{
-    ViewBag.Title = "EpcResults";
+﻿@{
+    ViewBag.Title = "Runnymede EpcResults";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+
 <h2>EpcResults</h2>
+<div id="mapid"></div>
+<div class="container">
+
+    <b>Coordinates</b>
+    <form>
+        <input type="text" name="lat" id="lat" size=12 value="">
+        <input type="text" name="lon" id="lon" size=12 value="">
+    </form>
+
+    <b>Address Lookup</b>
+    <div id="search">
+        <input type="text" name="addr" value="" id="addr" size="58" />
+        <button type="button" onclick="addr_search();">Search</button>
+        <div id="results"></div>
+    </div>
+
+    <br />
+
+    <div id="map"></div>
+
+</div>
 
 <table class="table">
     <thead>
@@ -20,167 +41,291 @@
     <tbody></tbody>
 </table>
 
+@section Styles
+{
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css"
+          integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+          crossorigin="" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+    <style>
+        #mapid {
+            height: 500px;
+        }
+    </style>
 
+
+}
 @section scripts
-    {
-<script>
-    //Get local JSON file for overcoming Cors error
-    $(document).ready(function () {
-        console.log("Ready!");
-        $.getJSON('/Home/Get',
-            function (json)
-            {
-                console.log("creating table");
-                console.log(json["rows"]);
-                json["rows"].forEach(function (rowData) {
-                    tr = $('<tr />');
-                    tr.append("<td>" + rowData["address1"] + "</td>");
-                    tr.append("<td>" + rowData["postcode"] + "</td>");
-                    tr.append("<td>" + rowData["current-energy-rating"] + "</td>");
-                    tr.append("<td>" + rowData["potential-energy-rating"] + "</td>");
-                    tr.append("<td>" + rowData["current-energy-efficiency"] + "</td>");
-                    tr.append("<td>" + rowData["potential-energy-efficiency"] + "</td>");
-                    $('table').append(tr);
-                });
-            });
+{
+    <!-- Make sure you put this AFTER Leaflet's CSS -->
+    <script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"
+            integrity="sha512-GffPMF3RvMeYyc1LWMHtK8EbPv0iNZ8/oTtHPx9/cc2ILxQ+u905qIwdpULaqDkyBKgOaB57QTMg7ztg8Jm2Og=="
+            crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+    @*<script>
+        //var mymap = L.map('mapid').setView([51.3948374, -0.55196094647528], 10);
+        //L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+        //    attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+        //    maxZoom: 18,
+        //    id: 'mapbox.streets',
+        //    accessToken: 'pk.eyJ1IjoiYW5kZXN0ZiIsImEiOiJjanZ2NnVmNnIyemdzNDFsZXFnY2hpdm1rIn0.zdoN8GaoHy8YBmaFuJH_gQ'
+        //}).addTo(mymap);
+        var map = L.map('mapid').setView([51.3948374, -0.55196094647528], 12);
+        L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+        //L.Control.geocoder().addTo(map);
+        var geocoder = L.Control.geocoder({
+            defaultMarkGeocode: true
+        })
+            .on('markgeocode', function (e) {
+                var bbox = e.geocode.bbox;
+                var poly = L.polygon([
+                    bbox.getSouthEast(),
+                    bbox.getNorthEast(),
+                    bbox.getNorthWest(),
+                    bbox.getSouthWest()
+                ]).addTo(map);
+                map.fitBounds(poly.getBounds());
+            })
+            .addTo(map);
+    </script>*@
+    <script>
+        //Credit to https://stackoverflow.com/questions/15919227/get-latitude-longitude-as-per-address-given-for-leaflet
+        // Ruunymede
+        var startlat = 51.3948374;
+        var startlon = -0.55196094647528;
 
-     });
-
-/*
-    // Create the XHR object.
-    function createCORSRequest(method, url, base64Key)
-    {
-        var xhr = new XMLHttpRequest();
-        xhr.withCredentials = true;
-
-        if ("withCredentials" in xhr) {
-            // XHR for Chrome/Firefox/Opera/Safari.
-            xhr.open(method, url, true);
-            xhr.setRequestHeader('Authorization', 'Basic' + base64Key);
-
-
-        } else if (typeof XDomainRequest != "undefined") {
-            // XDomainRequest for IE.
-            xhr = new XDomainRequest();
-            xhr.open(method, url);
-        } else {
-            // CORS not supported.
-            xhr = null;
-        }
-        return xhr;
-    }
-
-    var url = 'https://epc.opendatacommunities.org/api/v1/domestic/search?local-authority=E07000212';
-    function makeCorsRequest()
-    {
-        //var xhr = createCORSRequest('GET', url, btoa('lightsaber2958+epc_catapult@gmail.com:4a0b0632882b35f7edd9ca1de96fd8f1cec69bae'));
-        var xhr = createCORSRequest('GET', url, 'bGlnaHRzYWJlcjI5NTgrZXBjX2NhdGFwdWx0QGdtYWlsLmNvbTo0YTBiMDYzMjg4MmIzNWY3ZWRkOWNhMWRlOTZmZDhmMWNlYzY5YmFl')
-
-        if (!xhr)
-        {
-            alert('CORS not supported');
-            return;
+        var options = {
+            center: [startlat, startlon],
+            zoom: 12
         }
 
-        // Response handlers.
-        xhr.onload = function ()
-        {
-            // Process our return data
-            if (xhr.status >= 200 && xhr.status < 300) {
-                // Runs when the request is successful
-                var data = JSON.parse(xhr.responseText);
-                var tr;
-                for (var rowData in data.rows)
-                {
-                    tr = $('<tr />');
-                    tr.append("<td>" + rowData["address1"] + "</td>");
-                    tr.append("<td>" + rowData["postcode"] + "</td>");
-                    tr.append("<td>" + rowData["current-energy-rating"] + "</td>");
-                    tr.append("<td>" + rowData["potential-energy-rating"] + "</td>");
-                    tr.append("<td>" + rowData["current-energy-efficiency"] + "</td>");
-                    tr.append("<td>" + rowData["potential-energy-efficiency"] + "</td>");
-                    $('table').append(tr);
-                }
-            }
-            else
-            {
-                // Runs when it's not
-                console.log(xhr.responseText);
-            }
-        };
+        document.getElementById('lat').value = startlat;
+        document.getElementById('lon').value = startlon;
 
-        xhr.onerror = function ()
-        {
-            alert('Woops, there was an error making the request.');
-        };
+        //var map = L.map('map', options);
+        var nzoom = 12;
+        var map = L.map('mapid').setView([51.3948374, -0.55196094647528], 10);
+        L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+            attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+            maxZoom: 18,
+            id: 'mapbox.streets',
+            accessToken: 'pk.eyJ1IjoiYW5kZXN0ZiIsImEiOiJjanZ2NnVmNnIyemdzNDFsZXFnY2hpdm1rIn0.zdoN8GaoHy8YBmaFuJH_gQ'
+        }).addTo(map);
+        //L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', { attribution: 'OSM' }).addTo(map);
 
-        xhr.send();
-    }
-    $(document).ready(function () {
-        makeCorsRequest();
-    });*/
-
-/*
-        // jQuery CORS example
-        $.ajax({
-            xhrFields: {
-                withCredentials: true
-            },
-                type: "GET",
-            url: "https://epc.opendatacommunities.org/api/v1/domestic/search?local-authority=E07000212"
-            }).done(function (data) {
-            console.log(data);
-            });
-
-            // XMLHttpRequest
-            var xhr = new XMLHttpRequest();
-            xhr.open("GET", "http://www.example.org/ajax.php", true);
-            xhr.withCredentials = true;
-            xhr.onload = function () {
-                console.log(xhr.responseText);
-            };
-            xhr.send();
-
-            // Fetch with credentials
-            fetch("http://www.example.org/ajax.php", {
-                credentials: "include"
-            }).then(function (response) {
-                return response.json();
-            }).then(function (json) {
-                console.log(json);
-        });
-*/
-        //var auth = btoa('lightsaber2958+epc_catapult@gmail.com:4a0b0632882b35f7edd9ca1de96fd8f1cec69bae');
-        //$(document).ready(function () {
-        //    $.ajax({
-        //        type: 'get',
-        //        contentType: "application/json",
-        //        'url': "https://epc.opendatacommunities.org/api/v1/domestic/search?local-authority=E07000212",
-        //        headers: {
-        //            Accept: "application/json",
-        //            Authorization: "Basic" + auth,
-        //        },
-               
-        //        success: function (json) {
-        //            var tr;
-        //            for (var rowData in json.rows) {
-        //                tr = $('<tr />');
-        //                tr.append("<td>" + rowData["address1"] + "</td>");
-        //                tr.append("<td>" + rowData["postcode"] + "</td>");
-        //                tr.append("<td>" + rowData["current-energy-rating"] + "</td>");
-        //                tr.append("<td>" + rowData["potential-energy-rating"] + "</td>");
-        //                tr.append("<td>" + rowData["current-energy-efficiency"] + "</td>");
-        //                tr.append("<td>" + rowData["potential-energy-efficiency"] + "</td>");
-        //                $('table').append(tr);
-        //            }
-        //        },
-        //        error: function (data, textStatus, errorThrown) {
-        //            console.log("error" + ' ' + JSON.stringify(data) + textStatus + errorThrown);
-        //        }
-
-        //    });
-
+        //var myMarker = L.marker([startlat, startlon], { title: "Coordinates", alt: "Coordinates", draggable: true }).addTo(map).on('dragend', function () {
+        //    var lat = myMarker.getLatLng().lat.toFixed(8);
+        //    var lon = myMarker.getLatLng().lng.toFixed(8);
+        //    var czoom = map.getZoom();
+        //    if (czoom < 18) { nzoom = czoom + 2; }
+        //    if (nzoom > 18) { nzoom = 18; }
+        //    if (czoom != 18) { map.setView([lat, lon], nzoom); } else { map.setView([lat, lon]); }
+        //    document.getElementById('lat').value = lat;
+        //    document.getElementById('lon').value = lon;
+        //    myMarker.bindPopup("Lat " + lat + "<br />Lon " + lon).openPopup();
         //});
-</script>
+
+        function chooseAddr(lat1, lng1) {
+            //myMarker.closePopup();
+            map.setView([lat1, lng1], 18);
+            //myMarker.setLatLng([lat1, lng1]);
+            lat = lat1.toFixed(8);
+            lon = lng1.toFixed(8);
+            document.getElementById('lat').value = lat;
+            document.getElementById('lon').value = lon;
+            //myMarker.bindPopup("Lat " + lat + "<br />Lon " + lon).openPopup();
+        }
+
+        function myFunction(arr) {
+            var out = "<br />";
+            var i;
+
+            if (arr.length > 0) {
+                for (i = 0; i < arr.length; i++) {
+                    out += "<div class='address' title='Show Location and Coordinates' onclick='chooseAddr(" + arr[i].lat + ", " + arr[i].lon + ");return false;'>" + arr[i].display_name + "</div>";
+                }
+                document.getElementById('results').innerHTML = out;
+            }
+            else {
+                document.getElementById('results').innerHTML = "Sorry, no results...";
+            }
+
+        }
+
+        function addr_search() {
+            var inp = document.getElementById("addr");
+            var xmlhttp = new XMLHttpRequest();
+            var url = "https://nominatim.openstreetmap.org/search?format=json&q=" + inp.value;
+            xmlhttp.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    var myArr = JSON.parse(this.responseText);
+                    myFunction(myArr);
+                }
+            };
+            xmlhttp.open("GET", url, true);
+            xmlhttp.send();
+        }
+
+    </script>
+    <script>
+        //Get local JSON file for overcoming Cors error
+        $(document).ready(function () {
+            console.log("Ready!");
+            $.getJSON('/Home/Get',
+                function (json) {
+                    console.log("creating table");
+                    console.log(json["rows"]);
+                    json["rows"].forEach(function (rowData) {
+                        tr = $('<tr />');
+                        tr.append("<td>" + rowData["address1"] + "</td>");
+                        tr.append("<td>" + rowData["postcode"] + "</td>");
+                        tr.append("<td>" + rowData["current-energy-rating"] + "</td>");
+                        tr.append("<td>" + rowData["potential-energy-rating"] + "</td>");
+                        tr.append("<td>" + rowData["current-energy-efficiency"] + "</td>");
+                        tr.append("<td>" + rowData["potential-energy-efficiency"] + "</td>");
+                        $('table').append(tr);
+                    });
+                });
+
+        });
+
+/*
+                                                    // Create the XHR object.
+                                                    function createCORSRequest(method, url, base64Key)
+                                                    {
+                                                        var xhr = new XMLHttpRequest();
+                                                        xhr.withCredentials = true;
+
+                                                        if ("withCredentials" in xhr) {
+                                                            // XHR for Chrome/Firefox/Opera/Safari.
+                                                            xhr.open(method, url, true);
+                                                            xhr.setRequestHeader('Authorization', 'Basic' + base64Key);
+
+
+                                                        } else if (typeof XDomainRequest != "undefined") {
+                                                            // XDomainRequest for IE.
+                                                            xhr = new XDomainRequest();
+                                                            xhr.open(method, url);
+                                                        } else {
+                                                            // CORS not supported.
+                                                            xhr = null;
+                                                        }
+                                                        return xhr;
+                                                    }
+
+                                                    var url = 'https://epc.opendatacommunities.org/api/v1/domestic/search?local-authority=E07000212';
+                                                    function makeCorsRequest()
+                                                    {
+                                                        //var xhr = createCORSRequest('GET', url, btoa('lightsaber2958+epc_catapult@gmail.com:4a0b0632882b35f7edd9ca1de96fd8f1cec69bae'));
+                                                        var xhr = createCORSRequest('GET', url, 'bGlnaHRzYWJlcjI5NTgrZXBjX2NhdGFwdWx0QGdtYWlsLmNvbTo0YTBiMDYzMjg4MmIzNWY3ZWRkOWNhMWRlOTZmZDhmMWNlYzY5YmFl')
+
+                                                        if (!xhr)
+                                                        {
+                                                            alert('CORS not supported');
+                                                            return;
+                                                        }
+
+                                                        // Response handlers.
+                                                        xhr.onload = function ()
+                                                        {
+                                                            // Process our return data
+                                                            if (xhr.status >= 200 && xhr.status < 300) {
+                                                                // Runs when the request is successful
+                                                                var data = JSON.parse(xhr.responseText);
+                                                                var tr;
+                                                                for (var rowData in data.rows)
+                                                                {
+                                                                    tr = $('<tr />');
+                                                                    tr.append("<td>" + rowData["address1"] + "</td>");
+                                                                    tr.append("<td>" + rowData["postcode"] + "</td>");
+                                                                    tr.append("<td>" + rowData["current-energy-rating"] + "</td>");
+                                                                    tr.append("<td>" + rowData["potential-energy-rating"] + "</td>");
+                                                                    tr.append("<td>" + rowData["current-energy-efficiency"] + "</td>");
+                                                                    tr.append("<td>" + rowData["potential-energy-efficiency"] + "</td>");
+                                                                    $('table').append(tr);
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                // Runs when it's not
+                                                                console.log(xhr.responseText);
+                                                            }
+                                                        };
+
+                                                        xhr.onerror = function ()
+                                                        {
+                                                            alert('Woops, there was an error making the request.');
+                                                        };
+
+                                                        xhr.send();
+                                                    }
+                                                    $(document).ready(function () {
+                                                        makeCorsRequest();
+                                                    });*/
+
+/*
+                                                        // jQuery CORS example
+                                                        $.ajax({
+                                                            xhrFields: {
+                                                                withCredentials: true
+                                                            },
+                                                                type: "GET",
+                                                            url: "https://epc.opendatacommunities.org/api/v1/domestic/search?local-authority=E07000212"
+                                                            }).done(function (data) {
+                                                            console.log(data);
+                                                            });
+
+                                                            // XMLHttpRequest
+                                                            var xhr = new XMLHttpRequest();
+                                                            xhr.open("GET", "http://www.example.org/ajax.php", true);
+                                                            xhr.withCredentials = true;
+                                                            xhr.onload = function () {
+                                                                console.log(xhr.responseText);
+                                                            };
+                                                            xhr.send();
+
+                                                            // Fetch with credentials
+                                                            fetch("http://www.example.org/ajax.php", {
+                                                                credentials: "include"
+                                                            }).then(function (response) {
+                                                                return response.json();
+                                                            }).then(function (json) {
+                                                                console.log(json);
+                                                        });
+*/
+                                                        //var auth = btoa('lightsaber2958+epc_catapult@gmail.com:4a0b0632882b35f7edd9ca1de96fd8f1cec69bae');
+                                                        //$(document).ready(function () {
+                                                        //    $.ajax({
+                                                        //        type: 'get',
+                                                        //        contentType: "application/json",
+                                                        //        'url': "https://epc.opendatacommunities.org/api/v1/domestic/search?local-authority=E07000212",
+                                                        //        headers: {
+                                                        //            Accept: "application/json",
+                                                        //            Authorization: "Basic" + auth,
+                                                        //        },
+
+                                                        //        success: function (json) {
+                                                        //            var tr;
+                                                        //            for (var rowData in json.rows) {
+                                                        //                tr = $('<tr />');
+                                                        //                tr.append("<td>" + rowData["address1"] + "</td>");
+                                                        //                tr.append("<td>" + rowData["postcode"] + "</td>");
+                                                        //                tr.append("<td>" + rowData["current-energy-rating"] + "</td>");
+                                                        //                tr.append("<td>" + rowData["potential-energy-rating"] + "</td>");
+                                                        //                tr.append("<td>" + rowData["current-energy-efficiency"] + "</td>");
+                                                        //                tr.append("<td>" + rowData["potential-energy-efficiency"] + "</td>");
+                                                        //                $('table').append(tr);
+                                                        //            }
+                                                        //        },
+                                                        //        error: function (data, textStatus, errorThrown) {
+                                                        //            console.log("error" + ' ' + JSON.stringify(data) + textStatus + errorThrown);
+                                                        //        }
+
+                                                        //    });
+
+                                                        //});
+    </script>
 }
 
