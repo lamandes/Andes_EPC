@@ -24,7 +24,29 @@
 @section scripts
     {
 <script>
+    //Get local JSON file for overcoming Cors error
+    $(document).ready(function () {
+        console.log("Ready!");
+        $.getJSON('/Home/Get',
+            function (json)
+            {
+                console.log("creating table");
+                console.log(json["rows"]);
+                json["rows"].forEach(function (rowData) {
+                    tr = $('<tr />');
+                    tr.append("<td>" + rowData["address1"] + "</td>");
+                    tr.append("<td>" + rowData["postcode"] + "</td>");
+                    tr.append("<td>" + rowData["current-energy-rating"] + "</td>");
+                    tr.append("<td>" + rowData["potential-energy-rating"] + "</td>");
+                    tr.append("<td>" + rowData["current-energy-efficiency"] + "</td>");
+                    tr.append("<td>" + rowData["potential-energy-efficiency"] + "</td>");
+                    $('table').append(tr);
+                });
+            });
 
+     });
+
+/*
     // Create the XHR object.
     function createCORSRequest(method, url, base64Key)
     {
@@ -96,7 +118,7 @@
     }
     $(document).ready(function () {
         makeCorsRequest();
-    });
+    });*/
 
 /*
         // jQuery CORS example
