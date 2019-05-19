@@ -98,7 +98,7 @@
 
         var options = {
             center: [startlat, startlon],
-            zoom: 12
+            zoom: 13
         }
 
         document.getElementById('lat').value = startlat;
@@ -106,7 +106,7 @@
 
         //var map = L.map('map', options);
         var nzoom = 12;
-        var map = L.map('mapid').setView([51.3948374, -0.55196094647528], 10);
+        var map = L.map('mapid').setView([51.3948374, -0.55196094647528], 13);
         L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
             attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
             maxZoom: 18,
@@ -115,27 +115,27 @@
         }).addTo(map);
         //L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', { attribution: 'OSM' }).addTo(map);
 
-        //var myMarker = L.marker([startlat, startlon], { title: "Coordinates", alt: "Coordinates", draggable: true }).addTo(map).on('dragend', function () {
-        //    var lat = myMarker.getLatLng().lat.toFixed(8);
-        //    var lon = myMarker.getLatLng().lng.toFixed(8);
-        //    var czoom = map.getZoom();
-        //    if (czoom < 18) { nzoom = czoom + 2; }
-        //    if (nzoom > 18) { nzoom = 18; }
-        //    if (czoom != 18) { map.setView([lat, lon], nzoom); } else { map.setView([lat, lon]); }
-        //    document.getElementById('lat').value = lat;
-        //    document.getElementById('lon').value = lon;
-        //    myMarker.bindPopup("Lat " + lat + "<br />Lon " + lon).openPopup();
-        //});
+        var myMarker = L.marker([startlat, startlon], { title: "Coordinates", alt: "Coordinates", draggable: true }).addTo(map).on('dragend', function () {
+            var lat = myMarker.getLatLng().lat.toFixed(8);
+            var lon = myMarker.getLatLng().lng.toFixed(8);
+            var czoom = map.getZoom();
+            if (czoom < 18) { nzoom = czoom + 2; }
+            if (nzoom > 18) { nzoom = 18; }
+            if (czoom != 18) { map.setView([lat, lon], nzoom); } else { map.setView([lat, lon]); }
+            document.getElementById('lat').value = lat;
+            document.getElementById('lon').value = lon;
+            myMarker.bindPopup("Lat " + lat + "<br />Lon " + lon).openPopup();
+        });
 
         function chooseAddr(lat1, lng1) {
-            //myMarker.closePopup();
-            map.setView([lat1, lng1], 18);
-            //myMarker.setLatLng([lat1, lng1]);
+            myMarker.closePopup();
+            map.setView([lat1, lng1], 14);
+            myMarker.setLatLng([lat1, lng1]);
             lat = lat1.toFixed(8);
             lon = lng1.toFixed(8);
             document.getElementById('lat').value = lat;
             document.getElementById('lon').value = lon;
-            //myMarker.bindPopup("Lat " + lat + "<br />Lon " + lon).openPopup();
+            myMarker.bindPopup("Lat " + lat + "<br />Lon " + lon).openPopup();
         }
 
         function myFunction(arr) {
